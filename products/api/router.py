@@ -11,81 +11,115 @@ from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, \
     HTTP_404_NOT_FOUND
 
 from api.schemas.responses import HTTP_400_RESPONSE, HTTP_404_RESPONSE
-from api.schemas.shop_unit import ShopUnitImportRequest, ShopUnitSchema, \
-    ShopUnitStatisticResponse
+from api.schemas.file_unit import UnitImportRequest, UnitSchema, \
+    UnitStatisticResponse, UnitResponseSchema, HistoryRequest, HistoryResponseSchema, \
+    TestSchema, UnitBaseSchema
 from database.engine import get_session
-from database.models import ShopUnit, UnitType
+from database.models import Unit, UnitType, HistoryUnit
 
 router = APIRouter()
 
+def unit_calc(unit: Unit):
+    if unit.type == UnitType.FILE:
+        return unit.size
+    elif unit.type == UnitType.FOLDER:
+        size = 0
+        for child in unit.children:
+            size += unit_calc(child)
 
-@router.get('/test', name='test',tags=['Тестовый роут'])
+        return size
+
+
+
+@router.get('/', name='Заяц - волк!',tags=['Проверка связи'])
 def get_test() -> Dict[str, str]:
-    """Тестовый метод для проверки запуска приложения"""
-    return {'status': 'ok'}
+    return {'Привет': 'лунатикам!'}
 
 
-@router.post('/imports', name='Добавляет новые товары или категории',
+@router.post('/imports', name='Добавляет новые папки и файлы',
              status_code=200, tags=['Базовые задачи'])
-def import_units(items: ShopUnitImportRequest,
+def import_units(items: UnitImportRequest,
                  session: Session = Depends(get_session)) -> \
         Response:
-    for shopunit in items.items:
-        shopunit.date = items.update_date
-        shop_unit_model = session.query(ShopUnit).filter(
-            ShopUnit.id == shopunit.id).one_or_none()
-        if shop_unit_model is not None:
-            logger.warning('find shopunit in base')
-            if shop_unit_model.type != shopunit.type:
+    id_set = set()
+    for fileunit in items.items:
+
+        if str(fileunit.id) in id_set:
+            raise HTTPException(status_code=400, detail='id already exists in batch!')
+        id_set.add(str(fileunit.id))
+
+        fileunit.date = items.update_date
+        file_unit_model = session.query(Unit).filter(
+            Unit.id == fileunit.id).one_or_none()
+        if file_unit_model is not None:
+            if file_unit_model.type != fileunit.type:
                 raise HTTPException(status_code=400, detail='Validation Failed')
-            for var, value in vars(shopunit).items():
-                setattr(shop_unit_model, var, value) if value else None
-            session.add(shop_unit_model)
+            for var, value in vars(fileunit).items():
+                setattr(file_unit_model, var, value) if value else None
+            session.add(file_unit_model)
         else:
-            session.add(ShopUnit(**shopunit.dict()))
+            session.add(Unit(**fileunit.dict()))
         session.commit()
+    #     вот здесь нужно запросить данные из базы
+    #     с датой равной дате загрузки
+    date = items.update_date
+    updated_units = session.query(Unit).filter(
+        Unit.date == date).all()
+    if updated_units:
+        for unit in updated_units:
+            dct = {}
+            dct["id"] = str(unit.id)
+            dct["type"] = str(unit.type).split('.')[1]
+            dct["url"] = unit.url
+            if not str(unit.parent_id) == "None":
+                dct["parent_id"] = str(unit.parent_id)
+
+            dct["size"] = unit_calc(unit)
+            dct["date"] = str(unit.date.astimezone(datetime.timezone.utc))
+            session.add(HistoryUnit(**dct))
+
+        session.commit()
+
     return Response(status_code=200)
 
 
-@router.get('/nodes/{id}/',
+@router.get('/nodes/{id}',
             name='Получает информацию об элементе по идентификатору',
-            response_model=ShopUnitSchema, response_model_by_alias=True,
+            response_model=UnitResponseSchema, response_model_by_alias=True,
             tags=['Базовые задачи'])
-def get_unit(id: Union[UUID, str], session: Session = Depends(get_session)):
-    """
-    Получить информацию об элементе по идентификатору.
-    При получении информации о категории также предоставляется информация о её
-     дочерних элементах
 
-    - цена категории - это средняя цена всех её товаров, включая товары дочерних
-    категорий. Если категория не содержит товаров цена равна null. При
-    обновлении цены товара, средняя цена категории, которая содержит этот товар,
-     тоже обновляется
+def get_unit(id:  str, session: Session = Depends(get_session)):
+    """
+    Получить информацию об элементе по идентификатору. При получении информации о папке
+    также предоставляется информация о её дочерних элементах.
+
+        - для пустой папки поле children равно пустому массиву, а для файла равно null
+        - размер папки - это суммарный размер всех её элементов. Если папка не содержит элементов,
+        то размер равен 0. При обновлении размера элемента,
+         суммарный размер папки, которая содержит этот элемент, тоже обновляется.
 
     """
-    shopunit = session.query(ShopUnit).filter_by(id=id).one_or_none()
-    if shopunit is None:
+    unit = session.query(Unit).filter_by(id=id).one_or_none()
+    if unit is None:
         raise HTTPException(status_code=404, detail='Item not found')
-    su: ShopUnitSchema = ShopUnitSchema.from_orm(shopunit)
-    if su.type == UnitType.CATEGORY:
-        stack = [[su, 0, 0, 0]]
-        while len(stack):
-            last, index = stack[-1][0], stack[-1][1]
+    element: UnitResponseSchema = UnitResponseSchema.from_orm(unit)
+    if element.type == UnitType.FOLDER:
+        stc = [[element, 0, 0]]
+        while len(stc):
+            last, index = stc[-1][0], stc[-1][1]
             child = last.get_child(index)
             if child is None:
-                last.price = int(floor(stack[-1][3] / stack[-1][2]))
-                if len(stack) > 1:
-                    stack[-2][3] += stack[-1][3]
-                    stack[-2][2] += stack[-1][2]
-                stack.pop()
+                last.size = stc[-1][2]
+                if len(stc) > 1:
+                    stc[-2][2] += stc[-1][2]
+                stc.pop()
             else:
-                stack[-1][1] += 1
-                if child.type == UnitType.OFFER:
-                    stack[-1][2] += 1
-                    stack[-1][3] += child.price
+                stc[-1][1] += 1
+                if child.type == UnitType.FILE:
+                    stc[-1][2] += child.size
                 else:
-                    stack.append([child, 0, 0, 0])
-    return su
+                    stc.append([child, 0, 0])
+    return element
 
 
 @router.delete(
@@ -102,13 +136,13 @@ def get_unit(id: Union[UUID, str], session: Session = Depends(get_session)):
     },
     tags=['Базовые задачи']
 )
-def delete_unit(id: UUID,
+def delete_unit(id: str,
                 session: Session = Depends(get_session)) -> Response:
     """
-    При удалении категории удаляются все дочерние элементы.
+    При удалении папки удаляются все вложенные элементы.
     Доступ к статистике (истории обновлений) удаленного элемента невозможен.
     """
-    shopunit = session.query(ShopUnit).filter_by(id=id).one_or_none()
+    shopunit = session.query(Unit).filter_by(id=id).one_or_none()
     if shopunit is None:
         raise HTTPException(status_code=404, detail='Item not found')
     try:
@@ -120,19 +154,40 @@ def delete_unit(id: UUID,
         raise HTTPException(status_code=400, detail='Validation Failed')
 
 
-@router.get('/sales', status_code=200, tags=['Дополнительные задачи'],
-            response_model=ShopUnitStatisticResponse)
-def get_sales(date: datetime.datetime, session: Session = Depends(get_session)) -> ShopUnitStatisticResponse:
+@router.get('/updates', status_code=200, tags=['Дополнительные задачи'],
+            response_model=UnitStatisticResponse)
+def get_files(date: datetime.datetime, session: Session = Depends(get_session)) -> UnitStatisticResponse:
     """
-    Получение списка товаров, цена которых была обновлена за последние 24 часа
-    от времени переданном в запросе. Обновление цены не означает её изменение.
-    Обновления цен удаленных товаров недоступны. При обновлении цены товара,
-    средняя цена категории, которая содержит этот товар, тоже обновляется.
+    Получение списка **файлов**, которые были обновлены за последние 24 часа
+    включительно [date - 24h, date] от времени переданном в запросе.
     """
     logger.info(date)
-    items = session.query(ShopUnit).filter(
-        ShopUnit.type == UnitType.OFFER,
-        ShopUnit.date <= date,
-        ShopUnit.date >= date - datetime.timedelta(days=1),
+    items = session.query(Unit).filter(
+        Unit.type == UnitType.FILE,
+        Unit.date <= date,
+        Unit.date >= date - datetime.timedelta(days=1),
     ).all()
-    return ShopUnitStatisticResponse(items=items)
+    return UnitStatisticResponse(items=items)
+
+@router.get('/node/{id}/history',
+            name='истории обновлений по элементу за заданный полуинтервал [from, to)',
+            response_model=HistoryResponseSchema, response_model_by_alias=True,
+            tags=['Дополнительные задачи'])
+
+def get_history(id: str, dateStart: datetime.datetime = None, dateEnd: datetime.datetime = None, session: Session = Depends(get_session)):
+    """
+    Получить информацию об элементе по идентификатору.
+    При получении информации о категории также предоставляется информация о её
+     дочерних элементах
+    """
+    if dateStart == None:
+        dateStart = datetime.datetime.min
+    if dateEnd == None:
+        dateEnd = datetime.datetime.max
+
+    items = session.query(HistoryUnit).filter(
+        HistoryUnit.id == id,
+        HistoryUnit.date >= dateStart,
+        HistoryUnit.date < dateEnd ).all()
+
+    return {"items" : items}
