@@ -15,7 +15,7 @@ HTTP_400_RESPONSE = {
         }
 
 HTTP_404_RESPONSE = {
-            'description': 'Категория/товар не найден(а)',
+            'description': 'Папка/файл не найден(а)',
             'model': ErrorResult,
             'content': {
                 'application/json': {

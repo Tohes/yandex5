@@ -4,7 +4,7 @@
 
 ## Запуск проекта
 
-Зависимости (python-пакеты) лежат в файле `products/requiremets.txt`
+Зависимости (python-пакеты) лежат в файле `products/requirements.txt`
 
 ```shell
 pip install -r app/requirements.txt

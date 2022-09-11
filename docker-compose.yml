@@ -7,28 +7,32 @@ services:
     build:
       context: products
       dockerfile: Dockerfile
-      args:
-        DEBUG: ${DEBUG}
-        PROJECT_NAME: ${PROJECT_NAME}
-        SERVER_NAME: ${SERVER_NAME}
 
-        POSTGRES_HOST: ${POSTGRES_HOST}
-        POSTGRES_DB: ${POSTGRES_DB}
-        POSTGRES_USER: ${POSTGRES_USER}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-        POSTGRES_PORT: ${POSTGRES_PORT}
+    environment:
+      DEBUG: ${DEBUG}
+      PROJECT_NAME: ${PROJECT_NAME}
+      SERVER_NAME: ${SERVER_NAME}
+
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+#
     ports:
-      - "80:8081"
+#     host port:container port
+      - "80:8080"
     volumes:
       - ./products:/products
     privileged: true
+    command: bash -c "alembic upgrade head && python wait.py && python main.py"
 
   database:
     image: postgres:14.3
     restart: always
     volumes:
-      - ./database/data:/var/lib/postgresql/data
-      - ./database/backups:/backups
+      - ./database/data2:/var/lib/postgresql/data
+      - ./database/backups2:/backups
     ports:
       - "5432:5432"
     environment:

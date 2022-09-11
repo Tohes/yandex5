@@ -11,15 +11,14 @@ Session = sessionmaker(autoflush=False, autocommit=False, bind=engine)
 
 
 def get_session():
-    """For Dependsy Injection"""
+    """For Dependancy Injection"""
     session = None
     try:
         session = Session()
         yield session
     finally:
         if session is not None:
-            if session is not None:
-                session.close()
+            session.close()
 
 
 def create_db():

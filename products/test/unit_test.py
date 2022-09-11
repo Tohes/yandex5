@@ -16,147 +16,144 @@ IMPORT_BATCHES = [
     {
         "items": [
             {
-                "type": "CATEGORY",
-                "name": "Товары",
+                "type": "FOLDER",
                 "id": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
                 "parentId": None
             }
         ],
-        "updateDate": "2022-02-01T12:00:00.000Z"
+        "updateDate": "2022-02-01T12:00:00Z"
     },
     {
         "items": [
             {
-                "type": "CATEGORY",
-                "name": "Смартфоны",
+                "type": "FOLDER",
                 "id": "d515e43f-f3f6-4471-bb77-6b455017a2d2",
-                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1"
+                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
             },
             {
-                "type": "OFFER",
-                "name": "jPhone 13",
+                "type": "FILE",
+                "url": "/file/url1",
                 "id": "863e1a7a-1304-42ae-943b-179184c077e3",
                 "parentId": "d515e43f-f3f6-4471-bb77-6b455017a2d2",
-                "price": 79999
+                "size": 128
             },
             {
-                "type": "OFFER",
-                "name": "Xomiа Readme 10",
+                "type": "FILE",
+                "url": "/file/url2",
                 "id": "b1d8fd7d-2ae3-47d5-b2f9-0f094af800d4",
                 "parentId": "d515e43f-f3f6-4471-bb77-6b455017a2d2",
-                "price": 59999
+                "size": 256
             }
         ],
-        "updateDate": "2022-02-02T12:00:00.000Z"
+        "updateDate": "2022-02-02T12:00:00Z"
     },
     {
         "items": [
             {
-                "type": "CATEGORY",
-                "name": "Телевизоры",
+                "type": "FOLDER",
                 "id": "1cc0129a-2bfe-474c-9ee6-d435bf5fc8f2",
-                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1"
+                "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
             },
             {
-                "type": "OFFER",
-                "name": "Samson 70\" LED UHD Smart",
+                "type": "FILE",
+                "url": "/file/url3",
                 "id": "98883e8f-0507-482f-bce2-2fb306cf6483",
                 "parentId": "1cc0129a-2bfe-474c-9ee6-d435bf5fc8f2",
-                "price": 32999
+                "size": 512
             },
             {
-                "type": "OFFER",
-                "name": "Phyllis 50\" LED UHD Smarter",
+                "type": "FILE",
+                "url": "/file/url4",
                 "id": "74b81fda-9cdc-4b63-8927-c978afed5cf4",
                 "parentId": "1cc0129a-2bfe-474c-9ee6-d435bf5fc8f2",
-                "price": 49999
+                "size": 1024
             }
         ],
-        "updateDate": "2022-02-03T12:00:00.000Z"
+        "updateDate": "2022-02-03T12:00:00Z"
     },
     {
         "items": [
             {
-                "type": "OFFER",
-                "name": "Goldstar 65\" LED UHD LOL Very Smart",
+                "type": "FILE",
+                "url": "/file/url5",
                 "id": "73bc3b36-02d1-4245-ab35-3106c9ee1c65",
                 "parentId": "1cc0129a-2bfe-474c-9ee6-d435bf5fc8f2",
-                "price": 69999
+                "size": 64
             }
         ],
-        "updateDate": "2022-02-03T15:00:00.000Z"
+        "updateDate": "2022-02-03T15:00:00Z"
     }
 ]
 
 EXPECTED_TREE = {
-    "type": "CATEGORY",
-    "name": "Товары",
+    "type": "FOLDER",
     "id": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
-    "price": 58599,
+    "size": 1984,
+    "url": None,
     "parentId": None,
-    "date": "2022-02-03T15:00:00.000Z",
+    "date": "2022-02-03T15:00:00Z",
     "children": [
         {
-            "type": "CATEGORY",
-            "name": "Телевизоры",
+            "type": "FOLDER",
             "id": "1cc0129a-2bfe-474c-9ee6-d435bf5fc8f2",
             "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
-            "price": 50999,
-            "date": "2022-02-03T15:00:00.000Z",
+            "size": 1600,
+            "url": None,
+            "date": "2022-02-03T15:00:00Z",
             "children": [
                 {
-                    "type": "OFFER",
-                    "name": "Samson 70\" LED UHD Smart",
+                    "type": "FILE",
+                    "url": "/file/url3",
                     "id": "98883e8f-0507-482f-bce2-2fb306cf6483",
                     "parentId": "1cc0129a-2bfe-474c-9ee6-d435bf5fc8f2",
-                    "price": 32999,
-                    "date": "2022-02-03T12:00:00.000Z",
+                    "size": 512,
+                    "date": "2022-02-03T12:00:00Z",
                     "children": None,
                 },
                 {
-                    "type": "OFFER",
-                    "name": "Phyllis 50\" LED UHD Smarter",
+                    "type": "FILE",
+                    "url": "/file/url4",
                     "id": "74b81fda-9cdc-4b63-8927-c978afed5cf4",
                     "parentId": "1cc0129a-2bfe-474c-9ee6-d435bf5fc8f2",
-                    "price": 49999,
-                    "date": "2022-02-03T12:00:00.000Z",
+                    "size": 1024,
+                    "date": "2022-02-03T12:00:00Z",
                     "children": None
                 },
                 {
-                    "type": "OFFER",
-                    "name": "Goldstar 65\" LED UHD LOL Very Smart",
+                    "type": "FILE",
+                    "url": "/file/url5",
                     "id": "73bc3b36-02d1-4245-ab35-3106c9ee1c65",
                     "parentId": "1cc0129a-2bfe-474c-9ee6-d435bf5fc8f2",
-                    "price": 69999,
-                    "date": "2022-02-03T15:00:00.000Z",
+                    "size": 64,
+                    "date": "2022-02-03T15:00:00Z",
                     "children": None
                 }
             ]
         },
         {
-            "type": "CATEGORY",
-            "name": "Смартфоны",
+            "type": "FOLDER",
             "id": "d515e43f-f3f6-4471-bb77-6b455017a2d2",
             "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
-            "price": 69999,
-            "date": "2022-02-02T12:00:00.000Z",
+            "size": 384,
+            "url": None,
+            "date": "2022-02-02T12:00:00Z",
             "children": [
                 {
-                    "type": "OFFER",
-                    "name": "jPhone 13",
+                    "type": "FILE",
+                    "url": "/file/url1",
                     "id": "863e1a7a-1304-42ae-943b-179184c077e3",
                     "parentId": "d515e43f-f3f6-4471-bb77-6b455017a2d2",
-                    "price": 79999,
-                    "date": "2022-02-02T12:00:00.000Z",
+                    "size": 128,
+                    "date": "2022-02-02T12:00:00Z",
                     "children": None
                 },
                 {
-                    "type": "OFFER",
-                    "name": "Xomiа Readme 10",
+                    "type": "FILE",
+                    "url": "/file/url2",
                     "id": "b1d8fd7d-2ae3-47d5-b2f9-0f094af800d4",
                     "parentId": "d515e43f-f3f6-4471-bb77-6b455017a2d2",
-                    "price": 59999,
-                    "date": "2022-02-02T12:00:00.000Z",
+                    "size": 256,
+                    "date": "2022-02-02T12:00:00Z",
                     "children": None
                 }
             ]
@@ -237,29 +234,31 @@ def test_nodes():
     print("Test nodes passed.")
 
 
-def test_sales():
+def test_updates():
     params = urllib.parse.urlencode({
-        "date": "2022-02-04T00:00:00.000Z"
+        "date": "2022-02-04T00:00:00Z"
     })
-    status, response = request(f"/sales?{params}", json_response=True)
+    status, response = request(f"/updates?{params}", json_response=True)
     assert status == 200, f"Expected HTTP status code 200, got {status}"
-    print("Test sales passed.")
+    print("Test updates passed.")
 
 
-def test_stats():
+def test_history():
     params = urllib.parse.urlencode({
-        "dateStart": "2022-02-01T00:00:00.000Z",
-        "dateEnd": "2022-02-03T00:00:00.000Z"
+        "dateStart": "2022-02-01T00:00:00Z",
+        "dateEnd": "2022-02-03T00:00:00Z"
     })
     status, response = request(
-        f"/node/{ROOT_ID}/statistic?{params}", json_response=True)
-
+        f"/node/{ROOT_ID}/history?{params}", json_response=True)
     assert status == 200, f"Expected HTTP status code 200, got {status}"
     print("Test stats passed.")
 
 
 def test_delete():
-    status, _ = request(f"/delete/{ROOT_ID}", method="DELETE")
+    params = urllib.parse.urlencode({
+        "date": "2022-02-04T00:00:00Z"
+    })
+    status, _ = request(f"/delete/{ROOT_ID}?{params}", method="DELETE")
     assert status == 200, f"Expected HTTP status code 200, got {status}"
 
     status, _ = request(f"/nodes/{ROOT_ID}", json_response=True)
@@ -271,8 +270,8 @@ def test_delete():
 def test_all():
     test_import()
     test_nodes()
-    test_sales()
-    test_stats()
+    test_updates()
+    test_history()
     test_delete()
 
 
@@ -288,6 +287,8 @@ def main():
 
     if API_BASEURL.endswith('/'):
         API_BASEURL = API_BASEURL[:-1]
+
+    print(f"Testing API on {API_BASEURL}")
 
     if test_name is None:
         test_all()
