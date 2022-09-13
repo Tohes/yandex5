@@ -122,7 +122,7 @@ class UnitResponseSchema(UnitBaseSchema):
 
 
 class UnitStatisticResponse(BaseModel):
-    items: List[UnitBaseSchema]
+    items: List[HistoryBaseSchema]
 
     class Config:
         orm_mode = True
