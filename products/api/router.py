@@ -55,13 +55,15 @@ def import_units(items: UnitImportRequest,
         file_parent = session.query(Unit).filter(
             Unit.id == fileunit.parent_id).one_or_none()
         # если элемент есть, то проверяем, не является ли parent FILE
-        if file_parent is not None:
-            if file_parent.type == UnitType.FILE:
-                raise HTTPException(status_code=400, detail='File can not be a parent!')
-        # если в базе его нет, добавим id в множество родителей,
-        # и он гарантированно должен быть в загрузке
-        else:
-            parent_set.add(str(fileunit.parent_id))
+        if fileunit.parent_id is not None:
+            if file_parent is not None:
+                if file_parent.type == UnitType.FILE:
+                    raise HTTPException(status_code=400, detail='File can not be a parent!')
+            # если в базе его нет, добавим id в множество родителей,
+            # и он гарантированно должен быть в загрузке
+            else:
+                parent_set.add(str(fileunit.parent_id))
+
         # если тип элемента файл - запишем его в множество, чтобы потом проверить
         # пересечение множеств. Если множества пересекаются, то есть ссылка на файл!
         if str(fileunit.type) == 'FILE':
@@ -87,6 +89,8 @@ def import_units(items: UnitImportRequest,
         #     перед коммитом проверим ссылки parent на FILE
         if file_set.intersection(parent_set) != set():
             raise HTTPException(status_code=400, detail='File can not be a parent!')
+        if not (id_set >= parent_set):
+            raise HTTPException(status_code=400, detail='Unresolved parentId link!')
 
 
         session.commit()
