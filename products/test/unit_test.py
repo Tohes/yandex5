@@ -161,6 +161,40 @@ EXPECTED_TREE = {
     ]
 }
 
+EXPECTED_UPDATES = {
+    'items': [
+    {
+        "type": "FILE",
+        "url": "/file/url1",
+        "id": "863e1a7a-1304-42ae-943b-179184c077e3",
+        "parentId": "d515e43f-f3f6-4471-bb77-6b455017a2d2",
+        "size": 128,
+        "date": "2022-02-02T12:00:00Z",
+    },
+    {
+        "type": "FILE",
+        "url": "/file/url2",
+        "id": "b1d8fd7d-2ae3-47d5-b2f9-0f094af800d4",
+        "parentId": "d515e43f-f3f6-4471-bb77-6b455017a2d2",
+        "size": 256,
+        "date": "2022-02-02T12:00:00Z",
+    }
+
+]}
+
+EXPECTED_HISTORY = {'items': [
+    {
+        "type": "FOLDER",
+        "id": "d515e43f-f3f6-4471-bb77-6b455017a2d2",
+        "parentId": "069cb8d7-bbdd-47d3-ad8f-82ef4c269df1",
+        "size": 384,
+        "url": None,
+        "date": "2022-02-02T12:00:00Z",
+    }
+]
+}
+
+
 
 def request(path, method="GET", data=None, json_response=False):
     try:
@@ -236,9 +270,12 @@ def test_nodes():
 
 def test_updates():
     params = urllib.parse.urlencode({
-        "date": "2022-02-04T00:00:00Z"
+        "date": "2022-02-03T00:00:00Z"
     })
     status, response = request(f"/updates?{params}", json_response=True)
+    response["items"].sort(key=lambda x: x["id"])
+    EXPECTED_UPDATES["items"].sort(key=lambda x: x["id"])
+    assert response == EXPECTED_UPDATES, "Response list doesn't match expected list."
     assert status == 200, f"Expected HTTP status code 200, got {status}"
     print("Test updates passed.")
 
@@ -246,12 +283,17 @@ def test_updates():
 def test_history():
     params = urllib.parse.urlencode({
         "dateStart": "2022-02-01T00:00:00Z",
-        "dateEnd": "2022-02-03T00:00:00Z"
+        "dateEnd": "2022-02-03T12:00:00Z"
     })
+    root_id = "d515e43f-f3f6-4471-bb77-6b455017a2d2"
     status, response = request(
-        f"/node/{ROOT_ID}/history?{params}", json_response=True)
+        f"/node/{root_id}/history?{params}", json_response=True)
+    response["items"].sort(key=lambda x: x["id"])
+    EXPECTED_HISTORY["items"].sort(key=lambda x: x["id"])
+    assert response == EXPECTED_HISTORY, "Response list doesn't match expected list."
     assert status == 200, f"Expected HTTP status code 200, got {status}"
     print("Test stats passed.")
+
 
 
 def test_delete():

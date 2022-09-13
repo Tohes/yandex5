@@ -176,16 +176,17 @@ def delete_unit(id: str,
     При удалении папки удаляются все вложенные элементы.
     Доступ к статистике (истории обновлений) удаленного элемента невозможен.
     """
-    shopunit = session.query(Unit).filter_by(id=id).one_or_none()
-    if shopunit is None:
+    fileunit = session.query(Unit).filter_by(id=id).one_or_none()
+    if fileunit is None:
         raise HTTPException(status_code=404, detail='Item not found')
     try:
-        session.delete(shopunit)
+        session.delete(fileunit)
         session.commit()
         return Response(status_code=HTTP_200_OK)
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=400, detail='Validation Failed')
+
 
 
 @router.get('/updates', status_code=200, tags=['Дополнительные задачи'],
