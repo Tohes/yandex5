@@ -72,7 +72,7 @@ class UnitImport(UnitBaseSchema):
         type = values.get('type')
         url = values.get('url')
         assert ((UnitType(type) == UnitType.FOLDER and size is None and url is None) or (
-                UnitType(type) == UnitType.FILE and size >= 0 and len(url)<=255))
+                UnitType(type) == UnitType.FILE and size > 0 and len(url)<=255))
 
 
         return values
@@ -103,12 +103,19 @@ class UnitResponseSchema(UnitBaseSchema):
         return convert_datetime_to_iso_8601_with_z_suffix(v)
 
     @validator("children")
-    def replace_empty_list(cls, v):
-        return v or None
+    def replace_empty_list(cls, v, values):
+        type = values.get("type")
+        if type == UnitType.FILE:
+            return v or None
+        else:
+            return v or list()
 
     def get_child(self, index):
-        if len(self.children) > index:
-            return self.children[index]
+        try:
+            if len(self.children) > index:
+                return self.children[index]
+        except:
+            pass
         return None
 
 

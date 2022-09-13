@@ -42,23 +42,53 @@ def import_units(items: UnitImportRequest,
                  session: Session = Depends(get_session)) -> \
         Response:
     id_set = set()
+    parent_set = set()
+    file_set = set()
     for fileunit in items.items:
 
+        # если элемент уже есть в загрузке, возвращаем ошибку
         if str(fileunit.id) in id_set:
             raise HTTPException(status_code=400, detail='id already exists in batch!')
         id_set.add(str(fileunit.id))
 
+        # нужно проверить не ссылается ли parentid на FILE
+        file_parent = session.query(Unit).filter(
+            Unit.id == fileunit.parent_id).one_or_none()
+        # если элемент есть, то проверяем, не является ли parent FILE
+        if file_parent is not None:
+            if file_parent.type == UnitType.FILE:
+                raise HTTPException(status_code=400, detail='File can not be a parent!')
+        # если в базе его нет, добавим id в множество родителей,
+        # и он гарантированно должен быть в загрузке
+        else:
+            parent_set.add(str(fileunit.parent_id))
+        # если тип элемента файл - запишем его в множество, чтобы потом проверить
+        # пересечение множеств. Если множества пересекаются, то есть ссылка на файл!
+        if str(fileunit.type) == 'FILE':
+            file_set.add(str(fileunit.type))
+
+        # считываем дату из запроса
         fileunit.date = items.update_date
+        # проверяем, есть ли элемент в базе
         file_unit_model = session.query(Unit).filter(
             Unit.id == fileunit.id).one_or_none()
+        # если элемент есть:
+        # проверяем, не изменился ли его тип
         if file_unit_model is not None:
             if file_unit_model.type != fileunit.type:
-                raise HTTPException(status_code=400, detail='Validation Failed')
+                # менять тип элемента не допускается
+                raise HTTPException(status_code=400, detail='Attempt to change unit type!')
+            # добавим в session
             for var, value in vars(fileunit).items():
-                setattr(file_unit_model, var, value) if value else None
+                setattr(file_unit_model, var, value) #if value else None
             session.add(file_unit_model)
         else:
             session.add(Unit(**fileunit.dict()))
+        #     перед коммитом проверим ссылки parent на FILE
+        if file_set.intersection(parent_set) != set():
+            raise HTTPException(status_code=400, detail='File can not be a parent!')
+
+
         session.commit()
     #     вот здесь нужно запросить данные из базы
     #     с датой равной дате загрузки
