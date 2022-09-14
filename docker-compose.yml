@@ -2,8 +2,11 @@ version: '3.9'
 services:
   backend:
     hostname: localhost
+#    depends_on:
+#      - database
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
     restart: always
 
@@ -28,13 +31,18 @@ services:
     volumes:
       - ./products:/products
     privileged: true
-    command: bash -c "alembic upgrade head && python wait.py && python main.py"
+    command: bash -c "alembic upgrade head && python main.py"
 
   database:
     image: postgres:14.3
     volumes:
       - ./database/data2:/var/lib/postgresql/data
       - ./database/backups2:/backups
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
     environment:
