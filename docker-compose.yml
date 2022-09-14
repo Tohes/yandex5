@@ -2,8 +2,7 @@ version: '3.9'
 services:
   backend:
     hostname: localhost
-#    depends_on:
-#      - database
+
     depends_on:
       database:
         condition: service_healthy
@@ -26,7 +25,6 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
 
     ports:
-#     host port:container port
       - "80:8080"
     volumes:
       - ./products:/products
